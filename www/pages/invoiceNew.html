@@ -1,0 +1,293 @@
+<header class="bar bar-nav">
+<a class="icon icon-left-nav pull-left" onclick="loadPage('invoiceHome');"></a>
+<h1 class="title">New Invoice</h1>
+<script type="text/javascript">
+var counter = 1;
+var finalTotal = 0;
+
+function updateTotal()
+{
+    alert("hello");
+}
+
+
+$(document).ready(function()
+{
+    var products = [
+    {
+        "name": "acc cement",
+        "price": "134",
+        "tax": "3.5",
+        "quantity": "140",
+        "value": "10001",
+        "label": "10001"
+    },
+    {
+        "name": "ambuja cement",
+        "price": "123",
+        "tax": "3.5",
+        "value": "10002",
+        "quantity": "120",
+        "label": "10002"
+    },
+    {
+        "name": "xyz cement",
+        "price": "150",
+        "tax": "3.5",
+        "value": "10003",
+        "quantity": "190",
+        "label": "10003"
+    }];
+
+    $("#itemcode").autocomplete(
+    {
+        source: products,
+        minLength: 1,
+        select: function(event, ui)
+        {
+              // feed hidden id field
+              $("#itemname").val(ui.item.name);
+              $("#itemamnt").val(ui.item.price);
+              $("#itemtax").val(ui.item.tax);
+              //$("#itemqty").val(ui.item.quantity);
+              $("#itemquantity").html("(Available Quantity - "+ui.item.quantity+")");
+
+              // update number of returned rows
+              $('#results_count').html('');
+        },
+        open: function(event, ui)
+        {
+              // update number of returned rows
+              var len = $('.ui-autocomplete > li').length;
+              $('#results_count').html('(#' + len + ')');
+        },
+        close: function(event, ui)
+        {
+              // update number of returned rows
+              $('#results_count').html('');
+        },
+        // mustMatch implementation
+        change: function(event, ui)
+        {
+          if (ui.item === null)
+          {
+                $(this).val('');
+                $("#itemname").val('');
+                $("#itemamnt").val('');
+                $("#itemtax").val('');
+          }
+        }
+    });
+
+    // mustMatch (no value) implementation
+    $("#itemcode").focusout(function()
+    {
+        if ($("#itemcode").val() === '')
+        {
+          $("#itemname").val('');
+          $("#itemamnt").val('');
+          $("#itemtax").val('');
+        }
+    });
+})
+
+function printData()
+{
+    var divToPrint=document.getElementById("printData");
+    newWin= window.open("");
+    newWin.document.write(divToPrint.outerHTML);
+    newWin.print();
+    newWin.close();
+}
+
+
+function addData()
+{
+    $("#addError").html('');
+    var itemcode;
+    var itemcodeElement = document.getElementById("itemcode");
+    if(itemcodeElement != null || itemcodeElement != 'undefined')
+    {
+        itemcode = itemcodeElement.value;
+    }
+
+    var itmname;
+    var itmnameElement = document.getElementById("itemname");
+    if(itmnameElement != null || itmnameElement != 'undefined')
+    {
+        itmname = itemcodeElement.value;
+    }
+
+    var itemamnt;
+    var itmamntElement = document.getElementById("itemamnt");
+    if(itmamntElement != null || itmamntElement != 'undefined')
+    {
+        itemamnt = itmamntElement.value;
+    }
+
+    var itemtax;
+    var itmtaxElement = document.getElementById("itemtax");
+    if(itmtaxElement != null || itmtaxElement != 'undefined')
+    {
+        itemtax = itmtaxElement.value;
+    }
+
+    var itemqty;
+    var itmqtyElement = document.getElementById("itemqty");
+    if(itmqtyElement != null || itmqtyElement != 'undefined')
+    {
+        itemqty = itmqtyElement.value;
+    }
+
+    var totallinevalue = itemamnt*itemqty;
+    var linetotalvalue = (totallinevalue+ ((totallinevalue * itemtax)/100) );
+
+     finalTotal = finalTotal+linetotalvalue;
+     //alert("finalTotal = "+finalTotal)
+     $("#finalTotal").val(finalTotal);
+
+
+    if(linetotalvalue > 0)
+    {
+        $("#addError").html('');
+        var newTextBoxDiv = $(document.createElement('tr')).attr("id", 'textboxdiv' + counter);
+        newTextBoxDiv.after().html('<td class="first"><input ' + counter + '" class="itmcode" type="text" name="data[' + counter + '][0]" id="itemcode'+ counter +'" value="'+itemcode+'"></td>'
+        + '<td><input class="itmname" ' + counter + '" type="text" name="data[' + counter + '][1]" id="itemname'+ counter +'" value="'+itmname+'"></td>'
+        + '<td><input class="itmamnt" ' + counter + '" type="text" name="data[' + counter + '][3]" id="itemamnt'+ counter +'" value="'+itemamnt+'"></td>'
+        + '<td><input class="itmdesc" ' + counter + '" type="text" name="data[' + counter + '][2]" id="itemtax'+ counter +'" value="'+itemtax+'"></td>'
+        + '<td><input class="itmqty" ' + counter + '" type="text" name="data[' + counter + '][4]" id="itemqty'+ counter +'" value="'+itemqty+'"></td>'
+        + '<td><input type="text" name="total'+ counter + '" id="total'+ counter +'" value="'+linetotalvalue+'"></td>'
+        + '<td><a href="javascript:$(\'#textboxdiv'+counter+'\').remove();">X</a></td>');
+
+        // onclick="updateTotal();return false;"
+        newTextBoxDiv.appendTo("#TextBoxesGroup");
+        counter++;
+
+        $(document).on('keyup', '.itmqty', function(ev)
+        {   // grab ID to get row number
+            thisID = $(this).attr("id");
+            rowNum = thisID.slice(-1);
+            //get Amount entered
+            amt = $('#itemamnt'+rowNum).val();
+            //get QTY
+            qty = $('#itemqty'+rowNum).val();
+            //total value
+            totalvalue = amt*qty;
+            //get tax
+            tax = $('#itemtax'+rowNum).val();
+            totalvaluewithTax = (totalvalue+ ((totalvalue * tax)/100) );
+            $('#total'+rowNum).val(totalvaluewithTax);
+
+            // alert("totalvaluewithTax = "+totalvaluewithTax)
+
+        });
+        $("#itemcode").val('');
+        $("#itemname").val('');
+        $("#itemamnt").val('');
+        $("#itemtax").val('');
+        $("#itemqty").val('');
+        $("#itemquantity").html('');
+
+        //$('#total').val($('#itm-qty').val() * $('#itm-amnt').val());
+    }
+    else
+    {
+         $("#addError").html("Please select product and quantity before adding.");
+    }
+}
+</script>
+</header>
+<div class="content">
+    <div class="center" id="printData">
+        <table width="100%">
+            <tr>
+                <td width="30%">Invoice No &nbsp;</td>
+                <td width="70%"><input id="invoiceNo" type="text"></td>
+                </td>
+            </tr>
+            <tr>
+                <td width="30%">Customer Name &nbsp;</label></td>
+                <td width="70%"><input type="text" name="text-basic" id="text-basic" value=""></td>
+            </tr>
+            <tr>
+                <td width="30%">Phone &nbsp;</label></td>
+                <td width="70%"><input type="text" name="text-basic" id="text-basic" value=""></td>
+            </tr>
+            <tr>
+                <td width="30%">Email &nbsp;</label></td>
+                <td width="70%"><input type="text" name="text-basic" id="text-basic" value=""></td>
+            </tr>
+            <tr>
+                <td width="30%">Address &nbsp;</label></td>
+                <td width="70%"><input type="text" name="text-basic" id="text-basic" value=""></td>
+            </tr>
+            <tr>
+                <td width="30%">District &nbsp;</td>
+                <td width="70%"><input type="text" name="text-basic" id="text-basic" value=""></td>
+            </tr>
+            <tr>
+                <td width="30%">State &nbsp;</td>
+                <td width="70%"><input type="text" name="text-basic" id="text-basic" value=""></td>
+            </tr>
+            <tr>
+                <td width="30%">Pin Code &nbsp;</td>
+                <td width="70%"><input type="text" name="text-basic" id="text-basic" value=""></td>
+            </tr>
+        </table>
+        <table id="Search" class="table table-hover small-text price-sum">
+            <tr class="tr-header">
+                <th>Product No</th>
+                <th>Product Name</th>
+                <th>Product Price</th>
+                <th>Product Tax</th>
+                <th>Quantity <span id="itemquantity"></span></th>
+            </tr>
+            <tr id="TextBoxDiv2">
+                <td class="first">
+                    <input class="itmcode" id="itemcode" type="text">
+                </td>
+                <td>
+                    <input class="itmname" id="itemname" type="text">
+                </td>
+                <td>
+                    <input class="itmamnt" id="itemamnt" type="text">
+                </td>
+                <td>
+                    <input class="itmdesc" id="itemtax" type="text">
+                </td>
+                <td>
+                    <input class="itmqty"  id="itemqty" type="text">
+                </td>
+            </tr>
+        </table>
+        <button id="addButton" class="btn btn-positive btn-block" onclick="addData();">Add Product</button>
+        <b><span id="addError" align="center"></span></b>
+        <table id="TextBoxesGroup" class="table table-hover small-text price-sum">
+            <tr class="tr-header">
+                <th>Product No</th>
+                <th>Product Name</th>
+                <th>Product Price</th>
+                <th>Product Tax</th>
+                <th>Quantity</th>
+                <th>Line Total</th>
+            </tr>
+        </table>
+        <table id="Total" class="table table-hover small-text price-sum">
+            <tr class="tr-header">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Total</td>
+                <td>
+                    <input name="finalTotal" id="finalTotal" type="text">
+                </td>
+            </tr>
+        </table>
+        <button id="searchButton" class="btn btn-positive btn-block" onclick="printData();">Print</button>
+    </div>
+</div>
